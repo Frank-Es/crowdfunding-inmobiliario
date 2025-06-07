@@ -1,9 +1,19 @@
 'use client';
-import { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useEffect } from 'react';
 
-const projects = [
+
+ type Project = {
+  id: number;
+  name: string;
+  type: 'residencial' | 'social';
+  country: string;
+  coordinates: [number, number];
+  legal: string;
+  investment: string;
+};
+
+
+const projects: Project [] = [
   {
     id: 1,
     name: 'EcoViviendas Madrid',
@@ -72,5 +82,38 @@ ref={mapRef}></div>
   );
 };
 
-export default InteractiveMap;
+export default function InteractiveMap() {
+  useEffect(() => {
+    const map = new window.google.maps.Map(
+      document.getElementById("map") as HTMLElement,
+      {
+        center: { lat: 10, lng: -40 },
+        zoom: 2,
+      }
+    );
 
+    projects.forEach(project => {
+      new window.google.maps.Marker({
+        position: {
+          lat: project.coordinates[0],
+          lng: project.coordinates[1],
+        },
+        map,
+        title: `${project.name} - ${project.country}`,
+        animation: window.google.maps.Animation.DROP,
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: project.type === 'social' ? '#f59e0b' : '#3b82f6',
+          fillOpacity: 0.9,
+          strokeWeight: 1,
+          strokeColor: "#ffffff"
+        },
+      });
+    });
+  }, []);
+
+  return (
+    <div id="map" className="w-full h-[500px] rounded-xl shadow-md" />
+  );
+}

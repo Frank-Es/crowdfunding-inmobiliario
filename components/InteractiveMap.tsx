@@ -1,68 +1,76 @@
-// components/InteractiveMap.tsx
 'use client';
-
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useEffect, useRef } from 'react';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-defaulticon-compatibility';
-import 
-'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 
-type Project = {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  country: string;
-  type: string;
-};
-
-const projects: Project[] = [
+const projects = [
   {
-    id: '1',
-    name: 'Viviendas en Madrid',
-    lat: 40.4168,
-    lng: -3.7038,
+    id: 1,
+    name: 'EcoViviendas Madrid',
+    type: 'residencial',
     country: 'España',
-    type: 'Residencial',
+    coordinates: [40.4168, -3.7038],
+    legal: 'Ley de Vivienda España 2023',
+    investment: 'Desde 1.000€',
   },
   {
-    id: '2',
-    name: 'Complejo turístico en Tulum',
-    lat: 20.211,
-    lng: -87.465,
-    country: 'México',
-    type: 'Turístico',
-  },
-  {
-    id: '3',
-    name: 'Centro social en Medellín',
-    lat: 6.2442,
-    lng: -75.5812,
-    country: 'Colombia',
-    type: 'Social',
-  },
+    id: 2,
+    name: 'Barrio Verde Buenos Aires',
+    type: 'social',
+    country: 'Argentina',
+    coordinates: [-34.6037, -58.3816],
+    legal: 'Programa ProCreAr 2024',
+    investment: 'Desde 1.000€',
+  }
 ];
 
-export default function InteractiveMap() {
+const InteractiveMap = () => {
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const map = L.map(mapRef.current).setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(map);
+
+    projects.forEach(project => {
+      const color = project.type === 'social' ? 'red' : 'blue';
+
+      const customIcon = L.divIcon({
+        html: `<div style="
+          background-color: ${color};
+          border-radius: 50%;
+          width: 14px;
+          height: 14px;
+          animation: pulse 1.5s infinite;
+        "></div>`,
+        className: '',
+        iconSize: [14, 14],
+      });
+
+      const marker = L.marker(project.coordinates, { icon: customIcon 
+}).addTo(map);
+      marker.bindPopup(`
+        <strong>${project.name}</strong><br/>
+        País: ${project.country}<br/>
+        Inversión: ${project.investment}<br/>
+        Legislación: ${project.legal}
+      `);
+    });
+
+    return () => {
+      map.remove();
+    };
+  }, []);
+
   return (
-    <div className="h-[500px] rounded-xl shadow-md overflow-hidden">
-      <MapContainer center={[20.0, -30.0]} zoom={2} 
-scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
-        <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {projects.map(project => (
-          <Marker key={project.id} position={[project.lat, project.lng]}>
-            <Popup>
-              <strong>{project.name}</strong><br />
-              País: {project.country}<br />
-              Tipo: {project.type}
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
-    </div>
+    <div className="w-full h-[500px] rounded-lg overflow-hidden shadow" 
+ref={mapRef}></div>
   );
-}
+};
+
+export default InteractiveMap;
 
